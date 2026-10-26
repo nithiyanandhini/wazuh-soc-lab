@@ -1,0 +1,18 @@
+<group name="sysmon,persistence,scheduled_task,">
+  <rule id="100102" level="8">
+    <if_sid>92032</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)schtasks(\.exe)?\s.*/create</field>
+    <description>Scheduled task created with schtasks.exe</description>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+  <rule id="100103" level="8">
+    <if_sid>92027</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\bRegister-ScheduledTask\b</field>
+    <description>Scheduled task created with PowerShell</description>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+</group>
