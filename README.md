@@ -94,6 +94,6 @@ Times in my own notes did not match the alerts. I fixed it with `w32tm /resync`.
 
 ## Evidence
 
-Screenshots from the lab are in [wazuh-SOC-lab-evidence.pdf](wazuh-SOC-lab-evidence.pdf). They show the connected agent, the Incident 01 alerts, Sysmon running, the default alert for the encoded command, rule 100100 firing, the false positive, and the before and after result of the tuning rule.
+Screenshots from the lab are in [wazuh-SOC-lab-evidence.pdf](wazuh-SOC-lab-evidence.pdf). They show the connected agent, the Incident 01 alerts, Sysmon running, the default alert for the encoded command, rule 100100 firing, the false positive, the before and after result of the tuning rule, and the Incident 03 alerts (account creation, the four forms of encoded PowerShell, the scheduled task before and after rules 100102 and 100103, the Run key, and other alerts from the VM).
 
 Author: Nithiya Nandhini Dass
