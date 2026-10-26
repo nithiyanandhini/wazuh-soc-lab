@@ -1,6 +1,6 @@
 # Wazuh SIEM Home Lab
 
-A small SOC lab I built at home. A Windows 11 virtual machine sends its logs to a Wazuh manager. I ran some test activity on the VM, investigated the alerts, mapped them to MITRE ATT&CK, and wrote two custom detection rules. All activity is simulated in my own lab.
+A small SOC lab I built at home. A Windows 11 virtual machine sends its logs to a Wazuh manager. I ran some test activity on the VM, investigated the alerts, mapped them to MITRE ATT&CK, and wrote custom detection rules. All activity is simulated in my own lab.
 
 ## Lab setup
 
@@ -26,6 +26,7 @@ The WSL address changes after a restart. Check it with `hostname -I` and update 
 3. Created test events on the VM: failed logons, a new local admin account, an account deletion, and an encoded PowerShell command.
 4. Read the alerts in `alerts.json` with `jq` and wrote an incident report for each case.
 5. Wrote a custom rule for encoded PowerShell and a tuning rule for a false positive.
+6. Ran a small set of Atomic Red Team tests, found a gap in scheduled task detection and wrote two rules for it.
 
 ## Incident reports
 
@@ -33,6 +34,7 @@ The WSL address changes after a restart. Check it with `hostname -I` and update 
 |---|---|---|
 | 1 | [Local admin account created and deleted](incident-01-backdoor-admin-account.md) | T1136.001, T1098 |
 | 2 | [Encoded PowerShell and a noisy level 15 rule](incident-02-encoded-powershell-detection.md) | T1059.001, T1027 |
+| 3 | [Atomic Red Team tests and a scheduled task detection gap](incident-03-atomic-red-team-results.md) | T1136.001, T1087.001, T1547.001, T1053.005, T1059.001 |
 
 ## Custom rules
 
@@ -42,6 +44,8 @@ The rules are in the [rules](rules) folder.
 |---|---|---|
 | 100100 | 10 | Raises encoded PowerShell commands from level 4 to level 10 |
 | 100101 | 3 | Lowers a false positive from rule 92213 (level 15) |
+| 100102 | 8 | Scheduled task created with `schtasks /create` (T1053.005) |
+| 100103 | 8 | Scheduled task created with `Register-ScheduledTask` (T1053.005) |
 
 ## Problems I ran into
 
@@ -63,6 +67,15 @@ I edited `local_rules.xml` in nano and broke it. `wazuh-analysisd` could not loa
 **6. My first version of rule 100100 never fired.**
 It was attached to the Sysmon process group. Making it a child of the built-in rule 92027 fixed it. See Incident 02 for details.
 
+**7. Atomic Red Team would not install.**
+PowerShell blocked the module's scripts because the execution policy was Restricted. I changed the policy for that one PowerShell window only with `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`, and the install worked.
+
+**8. My commands found nothing because I was in the wrong Ubuntu.**
+I had two Ubuntu distributions in WSL, and the plain `Ubuntu` one had no Wazuh. The lab is in `Ubuntu-24.04`, which I now open with `wsl -d Ubuntu-24.04`.
+
+**9. The VM clock was about 10 minutes behind the manager.**
+Times in my own notes did not match the alerts. I fixed it with `w32tm /resync`.
+
 ## What I learned
 
 - Wazuh checks the source IP of each agent, so NAT between the agent and the manager can break an agent that was registered with a fixed IP.
@@ -71,10 +84,12 @@ It was attached to the Sysmon process group. Making it a child of the built-in r
 - The MITRE tags that Wazuh adds are a starting point and need checking.
 - A high alert level does not always mean something malicious. I checked the file, process and user before judging rule 92213.
 - Test the rules with `wazuh-analysisd -t` before restarting the manager.
+- Test a rule against the cleanup commands too. My first scheduled task rule also matched the command that deletes a task.
+- Two detection layers can catch the same action. Account creation was caught by command line rules and by event log rules.
 
 ## Not done yet
 
-- I have not run Atomic Red Team. The reports only cover activity I created by hand.
+- I ran only a few Atomic Red Team tests (account creation, account discovery, a Run key, scheduled tasks and encoded PowerShell). I skipped the tests that download tools such as Mimikatz and BloodHound.
 - I did not install the Wazuh dashboard. I read alerts from the log files.
 
 ## Evidence

@@ -106,5 +106,5 @@ After the tuning rule was in place, no new level 15 alert appeared for this file
 
 ## 8. Limits and open items
 
-- Rule 100100 is a child of 92027, so it only fires when PowerShell is started by PowerShell. An encoded command started from `cmd.exe` or another program would probably not match. The regular expression also misses the short forms of the switch, such as `-e` and `-ec`. A better version would be built on the general Sysmon process creation rule.
+- Rule 100100 is a child of 92027, so it only fires when PowerShell is started by PowerShell. An encoded command started from `cmd.exe` or another program would probably not match. The regular expression also misses the short forms of the switch, such as `-e` and `-ec`. I tested this later (see [Incident 03](incident-03-atomic-red-team-results.md)): the built-in rule 92057 raised a level 12 alert for `-e`, `-ec` and `-EncodedCommand`, so those forms are covered, and rule 100100 covers `-enc`.
 - Other alerts appeared on the same VM around 14:05 (a level 9 PowerShell alert and `net user` commands) and at 14:57 (rule 92058, level 12, "Application Compatibility Database launched"). I did not record what caused them, so I left them out of this report.
